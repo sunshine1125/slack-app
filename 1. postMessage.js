@@ -9,8 +9,9 @@ const web = new WebClient(token);
 const conversationId = 'C1232456';
 
 // See: https://api.slack.com/methods/chat.postMessage
-web.chat.postMessage({ channel: conversationId, text: 'Hello there' })
-  .then((res) => {
+web.chat
+  .postMessage({ channel: conversationId, text: 'Hello there' })
+  .then(res => {
     // `res` contains information about the posted message
     console.log('Message sent: ', res.ts);
   })
