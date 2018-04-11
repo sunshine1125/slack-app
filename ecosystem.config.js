@@ -26,12 +26,13 @@ module.exports = {
    */
   deploy: {
     master: {
-      host: ['match-node-test', 'match-node-live'],
+      host: ['cloud'],
       user: 'ubuntu',
       ref: 'origin/master',
       repo: 'git@github.com:liangtongzhuo/slack-app.git',
-      path: '/home/ubuntu/slack-app',
+      path: '/var/www/slack-app',
       // "ssh_options": ["StrictHostKeyChecking=no", "PasswordAuthentication=no"],
+      'post-setup': 'cp env.example.js env',
       'post-deploy': 'npm install && pm2 startOrReload ecosystem.config.js --env production',
     },
   },
