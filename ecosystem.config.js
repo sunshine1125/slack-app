@@ -8,7 +8,7 @@ module.exports = {
       name: 'slack-app',
       script: 'index.js',
       env: {
-        NODE_ENV: 'production',
+        // the common env
         PORT: 3009,
       },
       env_development: {
@@ -26,11 +26,11 @@ module.exports = {
    */
   deploy: {
     master: {
+      host: ['match-node-test', 'match-node-live'],
       user: 'ubuntu',
-      host: 'cloud',
       ref: 'origin/master',
-      repo: 'git@gitee.com:finley/pm2-demo.git',
-      path: '/home/ubuntu/node/slack-app',
+      repo: 'git@github.com:liangtongzhuo/slack-app.git',
+      path: '~/slack-app',
       // "ssh_options": ["StrictHostKeyChecking=no", "PasswordAuthentication=no"],
       'post-deploy': 'npm install && pm2 startOrReload ecosystem.config.js --env production',
     },
