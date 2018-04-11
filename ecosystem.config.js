@@ -30,7 +30,7 @@ module.exports = {
       user: 'ubuntu',
       ref: 'origin/master',
       repo: 'git@github.com:liangtongzhuo/slack-app.git',
-      path: '~/slack-app',
+      path: '/home/ubuntu/slack-app',
       // "ssh_options": ["StrictHostKeyChecking=no", "PasswordAuthentication=no"],
       'post-deploy': 'npm install && pm2 startOrReload ecosystem.config.js --env production',
     },
