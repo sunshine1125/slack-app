@@ -45,14 +45,20 @@ const getDisplayName = function(displayName) {
   return displayName.split('-')[1] ? displayName.split('-')[1].trim() : displayName;
 };
 
+const getDate = function(dateStr) {
+  return dateStr.replace('+0800', '').replace('T', ' ');
+};
+
 const messageBitbucket = function(req) {
   const BITBUCKET_URL = 'http://sh.shinetechchina.com:85/projects/RIOT/repos/';
   let data = req.body;
+  let commit_date = getDate(data.date);
   let actor_name = getDisplayName(data.actor.displayName);
   let repo_name = data.repository.name;
+  // TODO 有可能一次提交包含多个changes
   let commit_url = BITBUCKET_URL + data.repository.slug + '/commits/' + data.changes[0].toHash;
-
-  let result = `new committed from [${actor_name} >> ${repo_name}] -  <${commit_url}|click to see more>`;
+  let branch_name = data.changes[0].ref.displayId;
+  let result = `[${commit_date}] ${actor_name} committed to [${branch_name} - ${repo_name}] - <${commit_url}|click to see more>`;
   return result;
 };
 
