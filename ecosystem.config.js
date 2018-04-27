@@ -32,7 +32,7 @@ module.exports = {
       repo: 'git@github.com:liangtongzhuo/slack-app.git',
       path: '/var/www/slack-app',
       // "ssh_options": ["StrictHostKeyChecking=no", "PasswordAuthentication=no"],
-      'post-setup': 'cp env.example.js env',
+      // 'post-setup': 'cp env.example.js env.js',
       'post-deploy': 'npm install && pm2 startOrReload ecosystem.config.js --env production',
     },
   },

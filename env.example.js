@@ -1,6 +1,7 @@
 module.exports = {
-  clientId: '',
-  clientSecret: '',
+  port: 3009,
+  clientId: '1',
+  clientSecret: '1',
   bitbucketUrl: '',
-  channelUrl: '',
+  channelUrl: 'https://hooks.slack.com/services/XXX',
 };
