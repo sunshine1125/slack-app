@@ -52,7 +52,7 @@ const messageBitbucket = function(req) {
   let repo_name = data.repository.name;
   let commit_url = BITBUCKET_URL + data.repository.slug + '/commits/' + data.changes[0].toHash;
 
-  let result = `[新提交 in ${repo_name}] - ${actor_name} <${commit_url}|点击查看细节>`;
+  let result = `new committed from [${actor_name} >> ${repo_name}] -  <${commit_url}|click to see more>`;
   return result;
 };
 
