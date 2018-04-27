@@ -41,17 +41,18 @@ const generateMessage = function(req) {
   return result;
 };
 
+const getDisplayName = function(displayName) {
+  return displayName.split('-')[1] ? displayName.split('-')[1].trim() : displayName;
+};
+
 const messageBitbucket = function(req) {
-  let result = '';
+  const BITBUCKET_URL = 'http://sh.shinetechchina.com:85/projects/RIOT/repos/';
   let data = req.body;
-  let actor_name = data.actor.displayName;
+  let actor_name = getDisplayName(data.actor.displayName);
   let repo_name = data.repository.name;
-  let commit_url =
-    'http://sh.shinetechchina.com:85/projects/RIOT/repos/' +
-    data.repository.slug +
-    '/commits/' +
-    data.changes[0].toHash;
-  result = `${actor_name} committed: <${commit_url}> in ${repo_name}`;
+  let commit_url = BITBUCKET_URL + data.repository.slug + '/commits/' + data.changes[0].toHash;
+
+  let result = `[新提交 in ${repo_name}] - ${actor_name} <${commit_url}|点击查看细节>`;
   return result;
 };
 
@@ -102,7 +103,8 @@ app.post('/command', function(req, res) {
   res.send('Your ngrok tunnel is up and running!');
 });
 
-app.post('/bitbucket', (req, res) => {
+// http://sh.shinetechchina.com:85/
+app.post('/shinetech-bitbucket', (req, res) => {
   const headers = {
     'Content-type': 'application/json',
   };
