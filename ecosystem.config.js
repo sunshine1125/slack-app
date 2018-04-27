@@ -5,7 +5,7 @@ module.exports = {
    */
   apps: [
     {
-      name: 'slack-app',
+      name: 'slack-app-3009',
       script: 'index.js',
       env: {
         // the common env
