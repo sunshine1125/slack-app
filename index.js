@@ -67,12 +67,12 @@ app.listen(PORT, function() {
 });
 
 // This route handles GET requests to our root ngrok address and responds with the same "Ngrok is working message" we used before
-app.get('/', function(req, res) {
+app.get('/', (req, res) => {
   res.send('it is working! Path Hit: ' + req.url);
 });
 
 // This route handles get request to a /oauth endpoint. We'll use this endpoint for handling the logic of the Slack oAuth process behind our app.
-app.get('/oauth', function(req, res) {
+app.get('/oauth', (req, res) => {
   // When a user authorizes an app, a code query parameter is passed on the oAuth endpoint. If that code is not there, we respond with an error message
   if (!req.query.code) {
     res.status(500);
@@ -105,8 +105,20 @@ app.get('/oauth', function(req, res) {
 });
 
 // Route the endpoint that our slash command will point to and send back a simple response to indicate that ngrok is working
-app.post('/command', function(req, res) {
+app.post('/command', (req, res) => {
   res.send('Your ngrok tunnel is up and running!');
+});
+
+// 连接mongo，查询吃啥表，返回一个记录
+app.post('/fan', (req, res) => {
+  const allDinner = require('./config/common').allDinner;
+  const index = Math.floor(Math.random() * allDinner.length);
+  res.send(allDinner[index]);
+});
+
+app.post('/fan-list', (req, res) => {
+  const allDinner = require('./config/common').allDinner;
+  res.send(allDinner.join(','));
 });
 
 // http://sh.shinetechchina.com:85/
@@ -116,7 +128,6 @@ app.post('/shinetech-bitbucket', (req, res) => {
   };
 
   const text = messageBitbucket(req);
-
   const options = {
     url: config.channelUrl,
     method: 'POST',
