@@ -4,6 +4,10 @@ const app = express();
 const request = require('request');
 const bodyParser = require('body-parser');
 
+// https://github.com/chyingp/nodejs-learning-guide/blob/master/%E8%BF%9B%E9%98%B6/debug-log.md
+const debug = require('debug');
+const appDebug = debug('app');
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
@@ -63,7 +67,7 @@ const messageBitbucket = function(req) {
 };
 
 app.listen(PORT, function() {
-  console.log('Slack app listening on port ' + PORT);
+  appDebug('Slack app listening on port ' + PORT);
 });
 
 // This route handles GET requests to our root ngrok address and responds with the same "Ngrok is working message" we used before
@@ -77,7 +81,7 @@ app.get('/oauth', (req, res) => {
   if (!req.query.code) {
     res.status(500);
     res.send({ Error: "Looks like we're not getting code." });
-    console.log("Looks like we're not getting code.");
+    debug("Looks like we're not getting code.");
   } else {
     // If it's there...
 
@@ -95,7 +99,7 @@ app.get('/oauth', (req, res) => {
       },
       function(error, response, body) {
         if (error) {
-          console.log(error);
+          debug(error);
         } else {
           res.json(body);
         }
@@ -142,7 +146,7 @@ app.post('/shinetech-bitbucket', (req, res) => {
 
   request(options, (error, response, body) => {
     if (!error && response.statusCode == 200) {
-      console.log('push message to slack success');
+      debug('push message to slack success');
     }
     res.send('');
   });
