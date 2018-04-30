@@ -81,7 +81,7 @@ app.get('/oauth', (req, res) => {
   if (!req.query.code) {
     res.status(500);
     res.send({ Error: "Looks like we're not getting code." });
-    debug("Looks like we're not getting code.");
+    appDebug("Looks like we're not getting code.");
   } else {
     // If it's there...
 
@@ -146,7 +146,7 @@ app.post('/shinetech-bitbucket', (req, res) => {
 
   request(options, (error, response, body) => {
     if (!error && response.statusCode == 200) {
-      debug('push message to slack success');
+      appDebug('push message to slack success');
     }
     res.send('');
   });
