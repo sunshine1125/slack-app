@@ -54,7 +54,7 @@ const getDate = function(dateStr) {
 };
 
 const messageBitbucket = function(req) {
-  const BITBUCKET_URL = 'http://sh.shinetechchina.com:85/projects/RIOT/repos/';
+  const BITBUCKET_URL = 'http://sh.encootech.com:85/projects/RIOT/repos/';
   let data = req.body;
   let commit_date = getDate(data.date);
   let actor_name = getDisplayName(data.actor.displayName);
