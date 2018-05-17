@@ -54,13 +54,17 @@ const getDate = function(dateStr) {
 };
 
 const messageBitbucket = function(req) {
-  const BITBUCKET_URL = 'http://sh.encootech.com:85/projects/RIOT/repos/';
+  let bitbucket_url = 'http://sh.encootech.com:85/projects/RIOT/repos/';
   let data = req.body;
+  if (data.repository.project.type === 'PERSONAL') {
+    let project_owner = data.repository.project.owner.name;
+    bitbucket_url = `http://sh.encootech.com:85/users/${project_owner}/repos/`;
+  }
   let commit_date = getDate(data.date);
   let actor_name = getDisplayName(data.actor.displayName);
   let repo_name = data.repository.name;
   // TODO 有可能一次提交包含多个changes
-  let commit_url = BITBUCKET_URL + data.repository.slug + '/commits/' + data.changes[0].toHash;
+  let commit_url = bitbucket_url + data.repository.slug + '/commits/' + data.changes[0].toHash;
   let branch_name = data.changes[0].ref.displayId;
   let result = `[${commit_date}] ${actor_name} committed to [${branch_name} - ${repo_name}] - <${commit_url}|click to see more>`;
   return result;
