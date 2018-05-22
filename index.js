@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const request = require('request');
 const bodyParser = require('body-parser');
+const moment = require('moment');
 
 // https://github.com/chyingp/nodejs-learning-guide/blob/master/%E8%BF%9B%E9%98%B6/debug-log.md
 const debug = require('debug');
@@ -18,39 +19,32 @@ const clientSecret = config.clientSecret;
 
 const PORT = process.env.PORT || 3009;
 
-const generateMessage = function(req) {
-  let result = '';
-
-  let data = req.body;
-
-  for (let i = 0; i < data.commits.length; i++) {
-    let commit = data.commits[i];
-    let repo = data.repository;
-
-    result +=
-      commit.author.username ||
-      commit.author.name +
-        '>' +
-        ' <' +
-        commit.url +
-        '|committed:> in <' +
-        repo.url +
-        '|' +
-        repo.name +
-        '> :' +
-        commit.message;
-    result += '\n';
-  }
-
-  return result;
-};
-
 const getDisplayName = function(displayName) {
   return displayName.split('-')[1] ? displayName.split('-')[1].trim() : displayName;
 };
 
 const getDate = function(dateStr) {
   return dateStr.replace('+0800', '').replace('T', ' ');
+};
+
+const messageCodingNet = function(req) {
+  let data = req.body;
+  let branch_name = data.ref;
+  let repo_name = data.repository.name;
+
+  let output = [];
+
+  data.commits.forEach(commit => {
+    let commit_date = moment(commit.timestamp).format('YYYY-MM-DD HH:mm:ss');
+    let commit_url = commit.url;
+    let actor_name = commit.author.name;
+    let commit_message = commit.message || '';
+    output.push(
+      `[${commit_date}] ${actor_name} committed ${commit_message} to [${branch_name} - ${repo_name}] - <${commit_url}|click to see details>`
+    );
+  });
+
+  return output;
 };
 
 const messageBitbucket = function(req) {
@@ -127,6 +121,32 @@ app.post('/fan', (req, res) => {
 app.post('/fan-list', (req, res) => {
   const allDinner = require('./config/common').allDinner;
   res.send(allDinner.join(','));
+});
+
+app.post('/coding-net', (req, res) => {
+  const headers = {
+    'Content-type': 'application/json',
+  };
+
+  const text = messageCodingNet(req);
+  const options = {
+    url: config.channelUrl,
+    method: 'POST',
+    headers: headers,
+    // build message
+    // https://api.slack.com/docs/message-guidelines
+    body: {
+      text: text instanceof Array ? text.join('\r\n') : text,
+    },
+    json: true,
+  };
+
+  request(options, (error, response, body) => {
+    if (!error && response.statusCode == 200) {
+      appDebug('push message to slack success');
+    }
+    res.send('');
+  });
 });
 
 // http://sh.shinetechchina.com:85/
