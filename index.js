@@ -27,7 +27,7 @@ const getDate = function(dateStr) {
   return dateStr.replace('+0800', '').replace('T', ' ');
 };
 
-const messageCodingNet = function(req) {
+const messageCodingNet = (req, res) => {
   let data = req.body;
   let branch_name = data.ref;
   let repo_name = data.repository.name;
@@ -127,8 +127,11 @@ app.post('/coding-net', (req, res) => {
   const headers = {
     'Content-type': 'application/json',
   };
-
-  const text = messageCodingNet(req);
+  // coding自动发的测试请求，直接返回成功
+  if (req.body.zen) {
+    return res.send('success');
+  }
+  const text = messageCodingNet(req, res);
   const options = {
     url: config.channelUrl,
     method: 'POST',
