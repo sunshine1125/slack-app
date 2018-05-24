@@ -183,7 +183,7 @@ app.post('/shinetech-bitbucket', (req, res) => {
 
 app.post('/hexo', (req, res) => {
   helpers
-    .execShell('scripts/hexo.sh')
+    .execShell('sh ./scripts/hexo.sh')
     .then(res => {
       console.log('deploy hexo');
     })
