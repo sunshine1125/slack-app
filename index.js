@@ -29,6 +29,13 @@ const getDate = function(dateStr) {
   return dateStr.replace('+0800', '').replace('T', ' ');
 };
 
+const nowDate = function(timestamp = '') {
+  if (timestamp) {
+    return moment(timestamp).format('YYYY-MM-DD HH:mm:ss');
+  }
+  return moment().format('YYYY-MM-DD HH:mm:ss');
+};
+
 const messageCodingNet = (req, res) => {
   let data = req.body;
   let branch_name = data.ref;
@@ -37,7 +44,7 @@ const messageCodingNet = (req, res) => {
   let output = [];
 
   data.commits.forEach(commit => {
-    let commit_date = moment(commit.timestamp).format('YYYY-MM-DD HH:mm:ss');
+    let commit_date = nowDate(commit.timestamp);
     let commit_url = commit.url;
     let actor_name = commit.author.name;
     let commit_message = commit.message || '';
@@ -186,5 +193,5 @@ app.post('/hexo', (req, res) => {
   if (stderr) {
     res.send('error');
   }
-  res.send('success');
+  res.send(`[${nowDate()}] success`);
 });
