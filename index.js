@@ -187,5 +187,5 @@ app.post('/hexo', (req, res) => {
     .then(res => {
       console.log('deploy hexo');
     })
-    .cat(err => console.log(err));
+    .catch(err => console.log(err));
 });
