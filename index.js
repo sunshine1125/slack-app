@@ -5,6 +5,8 @@ const request = require('request');
 const bodyParser = require('body-parser');
 const moment = require('moment');
 
+const helpers = require('./common/helpers');
+
 // https://github.com/chyingp/nodejs-learning-guide/blob/master/%E8%BF%9B%E9%98%B6/debug-log.md
 const debug = require('debug');
 const appDebug = debug('app');
@@ -177,4 +179,13 @@ app.post('/shinetech-bitbucket', (req, res) => {
     }
     res.send('');
   });
+});
+
+app.post('/hexo', (req, res) => {
+  helpers
+    .execShell('scripts/hexo.sh')
+    .then(res => {
+      console.log('deploy hexo');
+    })
+    .cat(err => console.log(err));
 });
