@@ -182,10 +182,9 @@ app.post('/shinetech-bitbucket', (req, res) => {
 });
 
 app.post('/hexo', (req, res) => {
-  helpers
-    .execShell('sh ./scripts/hexo.sh')
-    .then(res => {
-      console.log('deploy hexo');
-    })
-    .catch(err => console.log(err));
+  const { stdout, stderr } = helpers.execShell('scripts/hexo.sh');
+  if (stderr) {
+    res.send('error');
+  }
+  res.send('success');
 });
