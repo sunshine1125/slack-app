@@ -43,15 +43,26 @@ const messageCodingNet = (req, res) => {
 
   let output = [];
 
-  data.commits.forEach(commit => {
+  if (data.commits) {
+    data.commits.forEach(commit => {
+      let commit_date = nowDate(commit.timestamp);
+      let commit_url = commit.url;
+      let actor_name = commit.author.name;
+      let commit_message = commit.message || '';
+      output.push(
+        `[${commit_date}] ${actor_name} committed '${commit_message}' to [${branch_name} - ${repo_name}] - <${commit_url}|click to see details>`
+      );
+    });
+  } else {
+    let commit = data.head_commit;
     let commit_date = nowDate(commit.timestamp);
     let commit_url = commit.url;
     let actor_name = commit.author.name;
     let commit_message = commit.message || '';
     output.push(
-      `[${commit_date}] ${actor_name} committed ${commit_message} to [${branch_name} - ${repo_name}] - <${commit_url}|click to see details>`
+      `[${commit_date}] ${actor_name} committed '${commit_message}' to [${branch_name} - ${repo_name}] - <${commit_url}|click to see details>`
     );
-  });
+  }
 
   return output;
 };
