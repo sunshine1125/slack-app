@@ -36,7 +36,7 @@ const nowDate = function(timestamp = '') {
   return moment().format('YYYY-MM-DD HH:mm:ss');
 };
 
-const messageCodingNet = (req, res) => {
+const messageCodingNetAndGitHub = (req, res) => {
   let data = req.body;
   let branch_name = data.ref;
   let repo_name = data.repository.name;
@@ -151,7 +151,7 @@ app.post('/coding-net', (req, res) => {
   if (req.body.zen) {
     return res.send('success');
   }
-  const text = messageCodingNet(req, res);
+  const text = messageCodingNetAndGitHub(req, res);
   const options = {
     url: config.channelUrl,
     method: 'POST',
@@ -205,4 +205,27 @@ app.post('/hexo', (req, res) => {
     res.send('error');
   }
   res.send(`[${nowDate()}] success`);
+});
+
+app.post('/github', (req, res) => {
+  const headers = {
+    'Content-type': 'application/json',
+  };
+  const text = messageCodingNetAndGitHub(req, res);
+  const options = {
+    url: config.channelUrl,
+    method: 'POST',
+    headers: headers,
+    body: {
+      text: text instanceof Array ? text.join('\r\n') : text,
+    },
+    json: true,
+  };
+
+  request(options, (error, response, body) => {
+    if (!error && response.statusCode == 200) {
+      appDebug('push message to slack success');
+    }
+    res.send('');
+  });
 });
