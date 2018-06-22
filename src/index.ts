@@ -1,8 +1,11 @@
 import express from 'express';
-const app = express();
-const debug = require('debug');
+import bodyParser from "body-parser";
+import debug from "debug";
 const appDebug = debug('app');
 
+const app = express();
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.get('/', (req: express.Request, res: express.Response) => {
   res.send('Hello World');
 });

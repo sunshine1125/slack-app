@@ -17,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@slack/client": "^4.1.0",
+    "@types/debug": "0.0.30",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
     "request": "^2.85.0"
