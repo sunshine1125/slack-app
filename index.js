@@ -37,9 +37,11 @@ const nowDate = function(timestamp = '') {
 };
 
 const messageCodingNetAndGitHub = (req, res) => {
+  let source = req.url.substring(1);
   let data = req.body;
   let branch_name = data.ref;
   let repo_name = data.repository.name;
+  let logo = data.logo;
 
   let output = [];
 
@@ -49,9 +51,20 @@ const messageCodingNetAndGitHub = (req, res) => {
       let commit_url = commit.url;
       let actor_name = commit.author.name;
       let commit_message = commit.message || '';
-      output.push(
-        `[${commit_date}] ${actor_name} committed '${commit_message}' to [${branch_name} - ${repo_name}] - <${commit_url}|click to see details>`
-      );
+      output.push({
+        color: '#36a64f',
+        title: `${actor_name} committed to [${branch_name} - ${repo_name}]`,
+        text: `commit message ${commit_message}`,
+        actions: [
+          {
+            type: 'button',
+            text: 'view detail',
+            url: `${commit_url}`,
+          },
+        ],
+        footer: `${source} | ${commit_date}`,
+        footer_icon: `${logo}`,
+      });
     });
   } else {
     let commit = data.head_commit;
@@ -59,9 +72,20 @@ const messageCodingNetAndGitHub = (req, res) => {
     let commit_url = commit.url;
     let actor_name = commit.author.name;
     let commit_message = commit.message || '';
-    output.push(
-      `[${commit_date}] ${actor_name} committed '${commit_message}' to [${branch_name} - ${repo_name}] - <${commit_url}|click to see details>`
-    );
+    output.push({
+      color: '#36a64f',
+      title: `${actor_name} committed to [${branch_name} - ${repo_name}]`,
+      text: `commit message ${commit_message}`,
+      actions: [
+        {
+          type: 'button',
+          text: 'view detail',
+          url: `${commit_url}`,
+        },
+      ],
+      footer: `${source} | ${commit_date}`,
+      footer_icon: `${logo}`,
+    });
   }
 
   return output;
@@ -151,7 +175,8 @@ app.post('/coding-net', (req, res) => {
   if (req.body.zen) {
     return res.send('success');
   }
-  const text = messageCodingNetAndGitHub(req, res);
+  req.body.logo = 'https://source-logo.pek3b.qingstor.com/coding.jpg';
+  const attachments = messageCodingNetAndGitHub(req, res);
   const options = {
     url: config.channelUrl,
     method: 'POST',
@@ -159,7 +184,7 @@ app.post('/coding-net', (req, res) => {
     // build message
     // https://api.slack.com/docs/message-guidelines
     body: {
-      text: text instanceof Array ? text.join('\r\n') : text,
+      attachments: attachments,
     },
     json: true,
   };
@@ -211,13 +236,14 @@ app.post('/github', (req, res) => {
   const headers = {
     'Content-type': 'application/json',
   };
-  const text = messageCodingNetAndGitHub(req, res);
+  req.body.logo = 'https://source-logo.pek3b.qingstor.com/github.jpg';
+  const attachments = messageCodingNetAndGitHub(req, res);
   const options = {
     url: config.channelUrl,
     method: 'POST',
     headers: headers,
     body: {
-      text: text instanceof Array ? text.join('\r\n') : text,
+      attachments: attachments,
     },
     json: true,
   };
