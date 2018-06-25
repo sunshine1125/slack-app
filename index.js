@@ -43,9 +43,11 @@ const message = (result, commitInfo, repInfo, isBitBucket) => {
   }
   result.push({
     color: '#36a64f',
+    author_name: `${repInfo.repo_name}`,
+    author_link: `${repInfo.repo_url}`,
+    author_icon: `${repInfo.logo}`,
     title: `${commitInfo.actor_name} committed to [${repInfo.branch_name} - ${repInfo.repo_name}]`,
     text: `${text}`,
-    thumb_url: `${repInfo.logo}`,
     actions: [
       {
         type: 'button',
@@ -64,6 +66,7 @@ const messageCodingNetAndGitHub = (req, res) => {
   repInfo.source = req.url.substring(1);
   repInfo.branch_name = data.ref;
   repInfo.repo_name = data.repository.name;
+  repInfo.repo_url = data.repository.html_url;
   repInfo.logo = data.logo;
   let output = [];
 
@@ -98,6 +101,7 @@ const messageBitbucket = function(req) {
   repInfo.source = req.url.substring(1);
   repInfo.logo = data.logo;
   repInfo.repo_name = data.repository.name;
+  repInfo.repo_url = `${repInfo.bitbucket_url}${data.repository.slug}`;
   commitInfo.commit_date = getDate(data.date);
   commitInfo.actor_name = getDisplayName(data.actor.displayName);
   commitInfo.commit_message = '';
@@ -192,7 +196,7 @@ app.post('/coding-net', (req, res) => {
 
 // http://sh.shinetechchina.com:85/
 app.post('/shinetech-bitbucket', (req, res) => {
-  req.body.logo = 'https://source-logo.pek3b.qingstor.com/favicon.ico';
+  req.body.logo = 'https://source-logo.pek3b.qingstor.com/bitbucket.ico';
   const attachments = messageBitbucket(req);
   reqConfig(req, res, attachments);
 });
@@ -206,7 +210,7 @@ app.post('/hexo', (req, res) => {
 });
 
 app.post('/github', (req, res) => {
-  req.body.logo = 'https://source-logo.pek3b.qingstor.com/github3.png';
+  req.body.logo = 'https://source-logo.pek3b.qingstor.com/github.png';
   const attachments = messageCodingNetAndGitHub(req, res);
   reqConfig(req, res, attachments);
 });
