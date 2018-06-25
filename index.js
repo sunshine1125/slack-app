@@ -36,75 +36,88 @@ const nowDate = function(timestamp = '') {
   return moment().format('YYYY-MM-DD HH:mm:ss');
 };
 
-const messageCodingNetAndGitHub = (req, res) => {
-  let source = req.url.substring(1);
-  let data = req.body;
-  let branch_name = data.ref;
-  let repo_name = data.repository.name;
-  let logo = data.logo;
+const message = (result, commitInfo, repInfo, isBitBucket) => {
+  let text = '';
+  if (!isBitBucket) {
+    text = `commit message ${commitInfo.commit_message}`;
+  }
+  result.push({
+    color: '#36a64f',
+    title: `${commitInfo.actor_name} committed to [${repInfo.branch_name} - ${repInfo.repo_name}]`,
+    text: `${text}`,
+    thumb_url: `${repInfo.logo}`,
+    actions: [
+      {
+        type: 'button',
+        text: 'view detail',
+        url: `${commitInfo.commit_url}`,
+      },
+    ],
+    footer: `${repInfo.source} | ${commitInfo.commit_date}`,
+  });
+};
 
+const messageCodingNetAndGitHub = (req, res) => {
+  let repInfo = {};
+  let commitInfo = {};
+  let data = req.body;
+  repInfo.source = req.url.substring(1);
+  repInfo.branch_name = data.ref;
+  repInfo.repo_name = data.repository.name;
+  repInfo.logo = data.logo;
   let output = [];
 
   if (data.commits) {
     data.commits.forEach(commit => {
-      let commit_date = nowDate(commit.timestamp);
-      let commit_url = commit.url;
-      let actor_name = commit.author.name;
-      let commit_message = commit.message || '';
-      output.push({
-        color: '#36a64f',
-        title: `${actor_name} committed to [${branch_name} - ${repo_name}]`,
-        text: `commit message ${commit_message}`,
-        actions: [
-          {
-            type: 'button',
-            text: 'view detail',
-            url: `${commit_url}`,
-          },
-        ],
-        footer: `${source} | ${commit_date}`,
-        footer_icon: `${logo}`,
-      });
+      commitInfo.commit_date = nowDate(commit.timestamp);
+      commitInfo.commit_url = commit.url;
+      commitInfo.actor_name = commit.author.name;
+      commitInfo.commit_message = commit.message || '';
+      message(output, commitInfo, repInfo, false);
     });
   } else {
     let commit = data.head_commit;
-    let commit_date = nowDate(commit.timestamp);
-    let commit_url = commit.url;
-    let actor_name = commit.author.name;
-    let commit_message = commit.message || '';
-    output.push({
-      color: '#36a64f',
-      title: `${actor_name} committed to [${branch_name} - ${repo_name}]`,
-      text: `commit message ${commit_message}`,
-      actions: [
-        {
-          type: 'button',
-          text: 'view detail',
-          url: `${commit_url}`,
-        },
-      ],
-      footer: `${source} | ${commit_date}`,
-      footer_icon: `${logo}`,
-    });
+    commitInfo.commit_date = nowDate(commit.timestamp);
+    commitInfo.commit_url = commit.url;
+    commitInfo.actor_name = commit.author.name;
+    commitInfo.commit_message = commit.message || '';
+    message(output, commitInfo, repInfo, false);
   }
-
   return output;
 };
 
 const messageBitbucket = function(req) {
-  let bitbucket_url = 'http://sh.encootech.com:85/projects/RIOT/repos/';
+  let repInfo = {};
+  let commitInfo = {};
+  repInfo.bitbucket_url = 'http://sh.encootech.com:85/projects/RIOT/repos/';
   let data = req.body;
   if (data.repository.project.type === 'PERSONAL') {
     let project_owner = data.repository.project.owner.name;
-    bitbucket_url = `http://sh.encootech.com:85/users/${project_owner}/repos/`;
+    repInfo.bitbucket_url = `http://sh.encootech.com:85/users/${project_owner}/repos/`;
   }
-  let commit_date = getDate(data.date);
-  let actor_name = getDisplayName(data.actor.displayName);
-  let repo_name = data.repository.name;
-  // TODO 有可能一次提交包含多个changes
-  let commit_url = bitbucket_url + data.repository.slug + '/commits/' + data.changes[0].toHash;
-  let branch_name = data.changes[0].ref.displayId;
-  let result = `[${commit_date}] ${actor_name} committed to [${branch_name} - ${repo_name}] - <${commit_url}|click to see more>`;
+  repInfo.source = req.url.substring(1);
+  repInfo.logo = data.logo;
+  repInfo.repo_name = data.repository.name;
+  commitInfo.commit_date = getDate(data.date);
+  commitInfo.actor_name = getDisplayName(data.actor.displayName);
+  commitInfo.commit_message = '';
+  let result = [];
+
+  if (data.changes.length > 1) {
+    data.changes.forEach(change => {
+      commitInfo.commit_url = `${repInfo.bitbucket_url}${data.repository.slug}/commits/${
+        change.toHash
+      }`;
+      repInfo.branch_name = change.ref.displayId;
+      message(result, commitInfo, repInfo, true);
+    });
+  } else {
+    commitInfo.commit_url = `${repInfo.bitbucket_url}${data.repository.slug}/commits/${
+      data.changes[0].toHash
+    }`;
+    repInfo.branch_name = data.changes[0].ref.displayId;
+    message(result, commitInfo, repInfo, true);
+  }
   return result;
 };
 
@@ -168,60 +181,20 @@ app.post('/fan-list', (req, res) => {
 });
 
 app.post('/coding-net', (req, res) => {
-  const headers = {
-    'Content-type': 'application/json',
-  };
   // coding自动发的测试请求，直接返回成功
   if (req.body.zen) {
     return res.send('success');
   }
-  req.body.logo = 'https://source-logo.pek3b.qingstor.com/coding.jpg';
+  req.body.logo = 'https://source-logo.pek3b.qingstor.com/coding.png';
   const attachments = messageCodingNetAndGitHub(req, res);
-  const options = {
-    url: config.channelUrl,
-    method: 'POST',
-    headers: headers,
-    // build message
-    // https://api.slack.com/docs/message-guidelines
-    body: {
-      attachments: attachments,
-    },
-    json: true,
-  };
-
-  request(options, (error, response, body) => {
-    if (!error && response.statusCode == 200) {
-      appDebug('push message to slack success');
-    }
-    res.send('');
-  });
+  reqConfig(req, res, attachments);
 });
 
 // http://sh.shinetechchina.com:85/
 app.post('/shinetech-bitbucket', (req, res) => {
-  const headers = {
-    'Content-type': 'application/json',
-  };
-
-  const text = messageBitbucket(req);
-  const options = {
-    url: config.channelUrl,
-    method: 'POST',
-    headers: headers,
-    // build message
-    // https://api.slack.com/docs/message-guidelines
-    body: {
-      text: text,
-    },
-    json: true,
-  };
-
-  request(options, (error, response, body) => {
-    if (!error && response.statusCode == 200) {
-      appDebug('push message to slack success');
-    }
-    res.send('');
-  });
+  req.body.logo = 'https://source-logo.pek3b.qingstor.com/favicon.ico';
+  const attachments = messageBitbucket(req);
+  reqConfig(req, res, attachments);
 });
 
 app.post('/hexo', (req, res) => {
@@ -233,11 +206,15 @@ app.post('/hexo', (req, res) => {
 });
 
 app.post('/github', (req, res) => {
+  req.body.logo = 'https://source-logo.pek3b.qingstor.com/github3.png';
+  const attachments = messageCodingNetAndGitHub(req, res);
+  reqConfig(req, res, attachments);
+});
+
+const reqConfig = (req, res, attachments) => {
   const headers = {
     'Content-type': 'application/json',
   };
-  req.body.logo = 'https://source-logo.pek3b.qingstor.com/github.jpg';
-  const attachments = messageCodingNetAndGitHub(req, res);
   const options = {
     url: config.channelUrl,
     method: 'POST',
@@ -254,4 +231,4 @@ app.post('/github', (req, res) => {
     }
     res.send('');
   });
-});
+};
