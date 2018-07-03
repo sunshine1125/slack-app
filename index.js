@@ -1,4 +1,5 @@
 const config = require('./env');
+const hosts = config.hosts;
 const express = require('express');
 const app = express();
 const request = require('request');
@@ -63,7 +64,7 @@ const messageCodingNetAndGitHub = (req, res) => {
   let repInfo = {};
   let commitInfo = {};
   let data = req.body;
-  repInfo.source = req.url.substring(1);
+  repInfo.source = req.sourceName;
   repInfo.branch_name = data.ref;
   repInfo.repo_name = data.repository.name;
   repInfo.repo_url = data.repository.html_url;
@@ -92,13 +93,13 @@ const messageCodingNetAndGitHub = (req, res) => {
 const messageBitbucket = function(req) {
   let repInfo = {};
   let commitInfo = {};
-  repInfo.bitbucket_url = 'http://sh.encootech.com:85/projects/RIOT/repos/';
+  repInfo.bitbucket_url = findAgentByName(req.sourceName).bitbucket_url;
   let data = req.body;
   if (data.repository.project.type === 'PERSONAL') {
     let project_owner = data.repository.project.owner.name;
-    repInfo.bitbucket_url = `http://sh.encootech.com:85/users/${project_owner}/repos/`;
+    repInfo.bitbucket_url = `${findAgentByName(req.sourceName).repo_url}/${project_owner}/repos/`;
   }
-  repInfo.source = req.url.substring(1);
+  repInfo.source = req.sourceName;
   repInfo.logo = data.logo;
   repInfo.repo_name = data.repository.name;
   repInfo.repo_url = `${repInfo.bitbucket_url}${data.repository.slug}`;
@@ -184,35 +185,12 @@ app.post('/fan-list', (req, res) => {
   res.send(allDinner.join(','));
 });
 
-app.post('/coding-net', (req, res) => {
-  // coding自动发的测试请求，直接返回成功
-  if (req.body.zen) {
-    return res.send('success');
-  }
-  req.body.logo = 'https://source-logo.pek3b.qingstor.com/coding.png';
-  const attachments = messageCodingNetAndGitHub(req, res);
-  reqConfig(req, res, attachments);
-});
-
-// http://sh.shinetechchina.com:85/
-app.post('/shinetech-bitbucket', (req, res) => {
-  req.body.logo = 'https://source-logo.pek3b.qingstor.com/bitbucket.ico';
-  const attachments = messageBitbucket(req);
-  reqConfig(req, res, attachments);
-});
-
 app.post('/hexo', (req, res) => {
   const { stdout, stderr } = helpers.execShell('scripts/hexo.sh');
   if (stderr) {
     res.send('error');
   }
   res.send(`[${nowDate()}] success`);
-});
-
-app.post('/github', (req, res) => {
-  req.body.logo = 'https://source-logo.pek3b.qingstor.com/github.png';
-  const attachments = messageCodingNetAndGitHub(req, res);
-  reqConfig(req, res, attachments);
 });
 
 const reqConfig = (req, res, attachments) => {
@@ -236,3 +214,40 @@ const reqConfig = (req, res, attachments) => {
     res.send('');
   });
 };
+
+const findAgentName = userAgent => {
+  let name = '';
+  if (userAgent.split('-')[0]) {
+    name = userAgent.split('-')[0];
+  }
+  if (name.indexOf('.') > 0 && name.indexOf('/') < 0) {
+    name = name.split(' ')[0];
+  }
+  if (name.indexOf('/') > 0) {
+    name = name.split('/')[1].trim();
+  }
+  return name;
+};
+
+const findAgentByName = hostName => {
+  return hosts.find(host => {
+    return host.name === hostName.toLowerCase();
+  });
+};
+
+app.post('/', (req, res) => {
+  if (req.body.zen) {
+    return res.send('success');
+  }
+  let attachments = '';
+  req.sourceName = findAgentName(req.headers['user-agent']);
+  if (req.sourceName === 'Bitbucket') {
+    req.sourceName = 'shinetech-bitbucket';
+    req.body.logo = findAgentByName(req.sourceName).logo;
+    attachments = messageBitbucket(req);
+  } else {
+    req.body.logo = findAgentByName(req.sourceName).logo;
+    attachments = messageCodingNetAndGitHub(req, res);
+  }
+  reqConfig(req, res, attachments);
+});
