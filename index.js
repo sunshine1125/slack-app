@@ -5,6 +5,7 @@ const app = express();
 const request = require('request');
 const bodyParser = require('body-parser');
 const moment = require('moment');
+const crypto = require('crypto');
 
 const helpers = require('./common/helpers');
 
@@ -60,7 +61,7 @@ const message = (result, commitInfo, repInfo, isBitBucket) => {
   });
 };
 
-const messageCodingNetAndGitHub = (req, res) => {
+const messageCodingNetAndGitHub = req => {
   let repInfo = {};
   let commitInfo = {};
   let data = req.body;
@@ -68,7 +69,7 @@ const messageCodingNetAndGitHub = (req, res) => {
   repInfo.branch_name = data.ref;
   repInfo.repo_name = data.repository.name;
   repInfo.repo_url = data.repository.html_url;
-  repInfo.logo = data.logo;
+  repInfo.logo = req.logo;
   let output = [];
 
   if (data.commits) {
@@ -93,38 +94,55 @@ const messageCodingNetAndGitHub = (req, res) => {
 const messageBitbucket = function(req) {
   let repInfo = {};
   let commitInfo = {};
+  let result = [];
   repInfo.bitbucket_url = findAgentByName(req.sourceName).bitbucket_url;
   let data = req.body;
-  if (data.repository.project.type === 'PERSONAL') {
-    let project_owner = data.repository.project.owner.name;
-    repInfo.bitbucket_url = `${findAgentByName(req.sourceName).repo_url}/${project_owner}/repos/`;
-  }
-  repInfo.source = req.sourceName;
-  repInfo.logo = data.logo;
-  repInfo.repo_name = data.repository.name;
-  repInfo.repo_url = `${repInfo.bitbucket_url}${data.repository.slug}`;
-  commitInfo.commit_date = getDate(data.date);
-  commitInfo.actor_name = getDisplayName(data.actor.displayName);
-  commitInfo.commit_message = '';
-  let result = [];
-
-  if (data.changes.length > 1) {
-    data.changes.forEach(change => {
+  if (data.length > 0) {
+    if (data.repository.project.type === 'PERSONAL') {
+      let project_owner = data.repository.project.owner.name;
+      repInfo.bitbucket_url = `${findAgentByName(req.sourceName).repo_url}/${project_owner}/repos/`;
+    }
+    repInfo.source = req.sourceName;
+    repInfo.logo = req.logo;
+    repInfo.repo_name = data.repository.name;
+    repInfo.repo_url = `${repInfo.bitbucket_url}${data.repository.slug}`;
+    commitInfo.commit_date = getDate(data.date);
+    commitInfo.actor_name = getDisplayName(data.actor.displayName);
+    commitInfo.commit_message = '';
+    if (data.changes.length > 1) {
+      data.changes.forEach(change => {
+        commitInfo.commit_url = `${repInfo.bitbucket_url}${data.repository.slug}/commits/${
+          change.toHash
+        }`;
+        repInfo.branch_name = change.ref.displayId;
+        message(result, commitInfo, repInfo, true);
+      });
+    } else {
       commitInfo.commit_url = `${repInfo.bitbucket_url}${data.repository.slug}/commits/${
-        change.toHash
+        data.changes[0].toHash
       }`;
-      repInfo.branch_name = change.ref.displayId;
+      repInfo.branch_name = data.changes[0].ref.displayId;
       message(result, commitInfo, repInfo, true);
-    });
-  } else {
-    commitInfo.commit_url = `${repInfo.bitbucket_url}${data.repository.slug}/commits/${
-      data.changes[0].toHash
-    }`;
-    repInfo.branch_name = data.changes[0].ref.displayId;
-    message(result, commitInfo, repInfo, true);
+    }
   }
   return result;
 };
+
+// const messageBitbucketCloud = function(req) {
+//   let repInfo = {};
+//   let commitInfo = {};
+//   let result = [];
+//   let data = req.body;
+//   repInfo.source = req.sourceName;
+//   repInfo.logo = req.logo;
+//   repInfo.repo_name = data.repository.name;
+//   repInfo.repo_url = data.repository.html.href;
+//
+//   if (data.commits) {
+//     data.commits.forEach()
+//   }
+//
+// };
 
 app.listen(PORT, function() {
   appDebug('Slack app listening on port ' + PORT);
@@ -219,12 +237,19 @@ const findAgentName = userAgent => {
   let name = '';
   if (userAgent.split('-')[0]) {
     name = userAgent.split('-')[0];
+    if (name === 'Bitbucket') {
+      name = 'bitbucket-cloud';
+      return name;
+    }
   }
   if (name.indexOf('.') > 0 && name.indexOf('/') < 0) {
     name = name.split(' ')[0];
   }
   if (name.indexOf('/') > 0) {
     name = name.split('/')[1].trim();
+    if (name === 'Bitbucket') {
+      name = 'bitbucket-server';
+    }
   }
   return name;
 };
@@ -235,19 +260,49 @@ const findAgentByName = hostName => {
   });
 };
 
-app.post('/', (req, res) => {
+// get secret middleware
+const getAgentSecret = (req, res, next) => {
+  req.sourceName = findAgentName(req.headers['user-agent']);
+  req.secret = findAgentByName(req.sourceName).secret;
+  next();
+};
+
+// hub signature verification middleware
+const verifyHubSignature = (req, res, next) => {
+  const signature = req.headers['x-hub-signature'] || req.headers['x-coding-signature'];
+  if (signature !== undefined) {
+    let expectedSignature = '';
+    if (req.sourceName === 'bitbucket-server') {
+      const hmac = crypto.createHmac('sha256', req.secret);
+      hmac.update(JSON.stringify(req.body));
+      expectedSignature = 'sha256=' + hmac.digest('hex');
+    } else {
+      const hmac = crypto.createHmac('sha1', req.secret);
+      hmac.update(JSON.stringify(req.body));
+      expectedSignature = 'sha1=' + hmac.digest('hex');
+    }
+    if (expectedSignature !== signature) {
+      res.status(400).send('Invalid signature');
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
+};
+
+app.post('/', getAgentSecret, verifyHubSignature, (req, res) => {
   if (req.body.zen) {
     return res.send('success');
   }
   let attachments = '';
-  req.sourceName = findAgentName(req.headers['user-agent']);
-  if (req.sourceName === 'Bitbucket') {
-    req.sourceName = 'shinetech-bitbucket';
-    req.body.logo = findAgentByName(req.sourceName).logo;
+  req.logo = findAgentByName(req.sourceName).logo;
+  if (req.sourceName === 'bitbucket-server') {
     attachments = messageBitbucket(req);
+  } else if (req.sourceName === 'bitbucket-cloud') {
+    // attachments = messageBitbucketCloud(req);
   } else {
-    req.body.logo = findAgentByName(req.sourceName).logo;
-    attachments = messageCodingNetAndGitHub(req, res);
+    attachments = messageCodingNetAndGitHub(req);
   }
   reqConfig(req, res, attachments);
 });
