@@ -13,6 +13,9 @@ const helpers = require('./common/helpers');
 const debug = require('debug');
 const appDebug = debug('app');
 
+const messageGithubAndCodingNet = require('./SlackMessage/messageGithubAndCoding');
+const messageBitbucketServer = require('./SlackMessage/messageBitbucketServer');
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
@@ -23,126 +26,12 @@ const clientSecret = config.clientSecret;
 
 const PORT = process.env.PORT || 3009;
 
-const getDisplayName = function(displayName) {
-  return displayName.split('-')[1] ? displayName.split('-')[1].trim() : displayName;
-};
-
-const getDate = function(dateStr) {
-  return dateStr.replace('+0800', '').replace('T', ' ');
-};
-
 const nowDate = function(timestamp = '') {
   if (timestamp) {
     return moment(timestamp).format('YYYY-MM-DD HH:mm:ss');
   }
   return moment().format('YYYY-MM-DD HH:mm:ss');
 };
-
-const message = (result, commitInfo, repInfo, isBitBucket) => {
-  let text = '';
-  if (!isBitBucket) {
-    text = `commit message ${commitInfo.commit_message}`;
-  }
-  result.push({
-    color: '#36a64f',
-    author_name: `${repInfo.repo_name}`,
-    author_link: `${repInfo.repo_url}`,
-    author_icon: `${repInfo.logo}`,
-    title: `${commitInfo.actor_name} committed to [${repInfo.branch_name} - ${repInfo.repo_name}]`,
-    text: `${text}`,
-    actions: [
-      {
-        type: 'button',
-        text: 'view detail',
-        url: `${commitInfo.commit_url}`,
-      },
-    ],
-    footer: `${repInfo.source} | ${commitInfo.commit_date}`,
-  });
-};
-
-const messageCodingNetAndGitHub = req => {
-  let repInfo = {};
-  let commitInfo = {};
-  let data = req.body;
-  repInfo.source = req.sourceName;
-  repInfo.branch_name = data.ref;
-  repInfo.repo_name = data.repository.name;
-  repInfo.repo_url = data.repository.html_url;
-  repInfo.logo = req.logo;
-  let output = [];
-
-  if (data.commits) {
-    data.commits.forEach(commit => {
-      commitInfo.commit_date = nowDate(commit.timestamp);
-      commitInfo.commit_url = commit.url;
-      commitInfo.actor_name = commit.author.name;
-      commitInfo.commit_message = commit.message || '';
-      message(output, commitInfo, repInfo, false);
-    });
-  } else {
-    let commit = data.head_commit;
-    commitInfo.commit_date = nowDate(commit.timestamp);
-    commitInfo.commit_url = commit.url;
-    commitInfo.actor_name = commit.author.name;
-    commitInfo.commit_message = commit.message || '';
-    message(output, commitInfo, repInfo, false);
-  }
-  return output;
-};
-
-const messageBitbucket = function(req) {
-  let repInfo = {};
-  let commitInfo = {};
-  let result = [];
-  repInfo.bitbucket_url = findAgentByName(req.sourceName).bitbucket_url;
-  let data = req.body;
-  if (data.length > 0) {
-    if (data.repository.project.type === 'PERSONAL') {
-      let project_owner = data.repository.project.owner.name;
-      repInfo.bitbucket_url = `${findAgentByName(req.sourceName).repo_url}/${project_owner}/repos/`;
-    }
-    repInfo.source = req.sourceName;
-    repInfo.logo = req.logo;
-    repInfo.repo_name = data.repository.name;
-    repInfo.repo_url = `${repInfo.bitbucket_url}${data.repository.slug}`;
-    commitInfo.commit_date = getDate(data.date);
-    commitInfo.actor_name = getDisplayName(data.actor.displayName);
-    commitInfo.commit_message = '';
-    if (data.changes.length > 1) {
-      data.changes.forEach(change => {
-        commitInfo.commit_url = `${repInfo.bitbucket_url}${data.repository.slug}/commits/${
-          change.toHash
-        }`;
-        repInfo.branch_name = change.ref.displayId;
-        message(result, commitInfo, repInfo, true);
-      });
-    } else {
-      commitInfo.commit_url = `${repInfo.bitbucket_url}${data.repository.slug}/commits/${
-        data.changes[0].toHash
-      }`;
-      repInfo.branch_name = data.changes[0].ref.displayId;
-      message(result, commitInfo, repInfo, true);
-    }
-  }
-  return result;
-};
-
-// const messageBitbucketCloud = function(req) {
-//   let repInfo = {};
-//   let commitInfo = {};
-//   let result = [];
-//   let data = req.body;
-//   repInfo.source = req.sourceName;
-//   repInfo.logo = req.logo;
-//   repInfo.repo_name = data.repository.name;
-//   repInfo.repo_url = data.repository.html.href;
-//
-//   if (data.commits) {
-//     data.commits.forEach()
-//   }
-//
-// };
 
 app.listen(PORT, function() {
   appDebug('Slack app listening on port ' + PORT);
@@ -295,14 +184,14 @@ app.post('/', getAgentSecret, verifyHubSignature, (req, res) => {
   if (req.body.zen) {
     return res.send('success');
   }
-  let attachments = '';
   req.logo = findAgentByName(req.sourceName).logo;
   if (req.sourceName === 'bitbucket-server') {
-    attachments = messageBitbucket(req);
-  } else if (req.sourceName === 'bitbucket-cloud') {
-    // attachments = messageBitbucketCloud(req);
+    req.bitbucket_url = findAgentByName(req.sourceName).bitbucket_url;
+    req.repo_url = findAgentByName(req.sourceName).repo_url;
+    let messageBucketServer = new messageBitbucketServer(req);
+    reqConfig(req, res, messageBucketServer.output());
   } else {
-    attachments = messageCodingNetAndGitHub(req);
+    let messageGithubAndCoding = new messageGithubAndCodingNet(req);
+    reqConfig(req, res, messageGithubAndCoding.output());
   }
-  reqConfig(req, res, attachments);
 });
