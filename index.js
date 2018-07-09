@@ -1,13 +1,12 @@
 const config = require('./env');
-const hosts = config.hosts;
 const express = require('express');
 const app = express();
 const request = require('request');
 const bodyParser = require('body-parser');
 const moment = require('moment');
-const crypto = require('crypto');
 
 const helpers = require('./common/helpers');
+const verify = require('./middleware/verify');
 
 // https://github.com/chyingp/nodejs-learning-guide/blob/master/%E8%BF%9B%E9%98%B6/debug-log.md
 const debug = require('debug');
@@ -100,6 +99,22 @@ app.post('/hexo', (req, res) => {
   res.send(`[${nowDate()}] success`);
 });
 
+app.post('/', verify.getAgentSecret, verify.verifyHubSignature, (req, res) => {
+  if (req.body.zen) {
+    return res.send('success');
+  }
+  req.logo = helpers.findAgentByName(req.sourceName).logo;
+  if (req.sourceName === 'bitbucket-server') {
+    req.bitbucket_url = helpers.findAgentByName(req.sourceName).bitbucket_url;
+    req.repo_url = helpers.findAgentByName(req.sourceName).repo_url;
+    let messageBucketServer = new messageBitbucketServer(req);
+    reqConfig(req, res, messageBucketServer.output());
+  } else {
+    let messageGithubAndCoding = new messageGithubAndCodingNet(req);
+    reqConfig(req, res, messageGithubAndCoding.output());
+  }
+});
+
 const reqConfig = (req, res, attachments) => {
   const headers = {
     'Content-type': 'application/json',
@@ -121,77 +136,3 @@ const reqConfig = (req, res, attachments) => {
     res.send('');
   });
 };
-
-const findAgentName = userAgent => {
-  let name = '';
-  if (userAgent.split('-')[0]) {
-    name = userAgent.split('-')[0];
-    if (name === 'Bitbucket') {
-      name = 'bitbucket-cloud';
-      return name;
-    }
-  }
-  if (name.indexOf('.') > 0 && name.indexOf('/') < 0) {
-    name = name.split(' ')[0];
-  }
-  if (name.indexOf('/') > 0) {
-    name = name.split('/')[1].trim();
-    if (name === 'Bitbucket') {
-      name = 'bitbucket-server';
-    }
-  }
-  return name;
-};
-
-const findAgentByName = hostName => {
-  return hosts.find(host => {
-    return host.name === hostName.toLowerCase();
-  });
-};
-
-// get secret middleware
-const getAgentSecret = (req, res, next) => {
-  req.sourceName = findAgentName(req.headers['user-agent']);
-  req.secret = findAgentByName(req.sourceName).secret;
-  next();
-};
-
-// hub signature verification middleware
-const verifyHubSignature = (req, res, next) => {
-  const signature = req.headers['x-hub-signature'] || req.headers['x-coding-signature'];
-  if (signature !== undefined) {
-    let expectedSignature = '';
-    if (req.sourceName === 'bitbucket-server') {
-      const hmac = crypto.createHmac('sha256', req.secret);
-      hmac.update(JSON.stringify(req.body));
-      expectedSignature = 'sha256=' + hmac.digest('hex');
-    } else {
-      const hmac = crypto.createHmac('sha1', req.secret);
-      hmac.update(JSON.stringify(req.body));
-      expectedSignature = 'sha1=' + hmac.digest('hex');
-    }
-    if (expectedSignature !== signature) {
-      res.status(400).send('Invalid signature');
-    } else {
-      next();
-    }
-  } else {
-    next();
-  }
-};
-
-app.post('/', getAgentSecret, verifyHubSignature, (req, res) => {
-  if (req.body.zen) {
-    return res.send('success');
-  }
-  req.logo = findAgentByName(req.sourceName).logo;
-  if (req.sourceName === 'bitbucket-server') {
-    req.bitbucket_url = findAgentByName(req.sourceName).bitbucket_url;
-    req.repo_url = findAgentByName(req.sourceName).repo_url;
-    let messageBucketServer = new messageBitbucketServer(req);
-    reqConfig(req, res, messageBucketServer.output());
-  } else {
-    let messageGithubAndCoding = new messageGithubAndCodingNet(req);
-    reqConfig(req, res, messageGithubAndCoding.output());
-  }
-});
