@@ -3,7 +3,6 @@ class messageBitbucketServer extends slackParentMessage {
   constructor(fields) {
     super(fields);
     this.data = fields.body;
-    this.commitInfo = {};
   }
   getBitbucketUrl() {
     if (this.data.repository) {
@@ -39,45 +38,43 @@ class messageBitbucketServer extends slackParentMessage {
     return null;
   }
   getMessage() {
+    let output = [];
     if (this.data.changes) {
       if (this.data.changes.length > 1) {
         this.data.changes.forEach(change => {
-          this.commitInfo.commit_url = `${this.getBitbucketUrl()}${
-            this.data.repository.slug
-          }/commits/${change.toHash}`;
-          this.commitInfo.branch_name = change.ref.displayId;
+          let commit_url = `${this.getBitbucketUrl()}${this.data.repository.slug}/commits/${
+            change.toHash
+          }`;
+          let branch_name = change.ref.displayId;
+          this.build(output, commit_url, branch_name);
         });
       } else {
-        this.commitInfo.commit_url = `${this.getBitbucketUrl()}${
-          this.data.repository.slug
-        }/commits/${this.data.changes[0].toHash}`;
-        this.commitInfo.branch_name = this.data.changes[0].ref.displayId;
+        let commit_url = `${this.getBitbucketUrl()}${this.data.repository.slug}/commits/${
+          this.data.changes[0].toHash
+        }`;
+        let branch_name = this.data.changes[0].ref.displayId;
+        this.build(output, commit_url, branch_name);
       }
     }
-    return this.commitInfo;
+    return output;
   }
-  build() {
-    return {
+  build(output, commit_url, branch_name) {
+    output.push({
       color: '#36a64f',
       author_name: `${this.getRepoName()}`,
       author_link: `${this.getRepoUrl()}`,
       author_icon: `${super.getRepoLogo()}`,
-      title: `${this.getActorName()} committed to [${
-        this.getMessage().branch_name
-      } - ${this.getRepoName()}]`,
+      title: `${this.getActorName()} committed to [${branch_name} - ${this.getRepoName()}]`,
       text: ``,
       actions: [
         {
           type: 'button',
           text: 'view detail',
-          url: `${this.getMessage().commit_url}`,
+          url: `${commit_url}`,
         },
       ],
       footer: `${super.getSourceName()} | ${this.getCommitDate()}`,
-    };
-  }
-  output() {
-    return super.output();
+    });
   }
 }
 module.exports = messageBitbucketServer;

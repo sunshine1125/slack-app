@@ -24,16 +24,16 @@ class slackParentMessage {
   getBitbucketUrl() {
     return this.fields.bitbucket_url;
   }
-  build() {
-    return {
+  build(output) {
+    output.push({
       color: '#36a64f',
       author_icon: `${this.getRepoLogo()}`,
       footer: `${this.getSourceName()}`,
-    };
+    });
   }
-  output() {
+  getMessage() {
     let output = [];
-    output.push(this.build());
+    this.build(output);
     return output;
   }
 }

@@ -14,6 +14,7 @@ const appDebug = debug('app');
 
 const messageGithubAndCodingNet = require('./SlackMessage/messageGithubAndCoding');
 const messageBitbucketServer = require('./SlackMessage/messageBitbucketServer');
+const messageBitbucketCloud = require('./SlackMessage/messageBitbucketCloud');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -108,10 +109,13 @@ app.post('/', verify.getAgentSecret, verify.verifyHubSignature, (req, res) => {
     req.bitbucket_url = helpers.findAgentByName(req.sourceName).bitbucket_url;
     req.repo_url = helpers.findAgentByName(req.sourceName).repo_url;
     let messageBucketServer = new messageBitbucketServer(req);
-    reqConfig(req, res, messageBucketServer.output());
+    reqConfig(req, res, messageBucketServer.getMessage());
+  } else if (req.sourceName === 'bitbucket-cloud') {
+    let messageBucketCloud = new messageBitbucketCloud(req);
+    reqConfig(req, res, messageBucketCloud.getMessage());
   } else {
     let messageGithubAndCoding = new messageGithubAndCodingNet(req);
-    reqConfig(req, res, messageGithubAndCoding.output());
+    reqConfig(req, res, messageGithubAndCoding.getMessage());
   }
 });
 

@@ -1,36 +1,28 @@
 const slackParentMessage = require('./parentMessageClass');
-class messageGithubAndCoding extends slackParentMessage {
+class messageBitbucketCloud extends slackParentMessage {
   constructor(fields) {
     super(fields);
     this.data = fields.body;
-  }
-  getBranchName() {
-    return this.data.ref;
+    this.commitInfo = {};
   }
   getRepoName() {
     return this.data.repository.name;
   }
   getRepoUrl() {
-    return this.data.repository.html_url;
+    return this.data.repository.links.html.href;
+  }
+  getBranchName() {
+    return this.data.push.changes[0].new.name;
   }
   getMessage() {
     let output = [];
-    if (this.data.commits) {
-      this.data.commits.forEach(commit => {
-        let commit_date = super.nowDate(commit.timestamp);
-        let commit_url = commit.url;
-        let actor_name = commit.author.name;
-        let commit_message = commit.message || '';
-        this.build(output, commit_date, commit_url, actor_name, commit_message);
-      });
-    } else {
-      let commit = this.data.head_commit;
-      let commit_date = super.nowDate(commit.timestamp);
-      let commit_url = commit.url;
-      let actor_name = commit.author.name;
-      let commit_message = commit.message || '';
+    this.data.push.changes[0].commits.forEach(commit => {
+      let commit_date = super.nowDate(commit.date);
+      let commit_url = commit.links.html.href;
+      let actor_name = commit.author.user.username;
+      let commit_message = commit.summary.raw;
       this.build(output, commit_date, commit_url, actor_name, commit_message);
-    }
+    });
     return output;
   }
   build(output, commit_date, commit_url, actor_name, commit_message) {
@@ -52,5 +44,4 @@ class messageGithubAndCoding extends slackParentMessage {
     });
   }
 }
-
-module.exports = messageGithubAndCoding;
+module.exports = messageBitbucketCloud;
