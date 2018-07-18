@@ -3,6 +3,7 @@ const helpers = require('../common/helpers');
 
 // get secret middleware
 const getAgentSecret = (req, res, next) => {
+  console.log(req.headers);
   if (req.headers.hasOwnProperty('user-agent')) {
     req.sourceName = helpers.findAgentName(req.headers['user-agent']);
   } else if (req.headers.hasOwnProperty('x-gitlab-event')) {
@@ -41,7 +42,4 @@ const verifyHubSignature = (req, res, next) => {
   }
 };
 
-module.exports = {
-  getAgentSecret,
-  verifyHubSignature,
-};
+module.exports = [getAgentSecret, verifyHubSignature];

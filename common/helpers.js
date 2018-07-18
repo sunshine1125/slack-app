@@ -2,10 +2,12 @@
  *  @author Finley Ma <maf@shinetechsoftware.com>
  */
 
+const config = require('../env');
+const hosts = config.hosts;
+
 /**
  * 执行 shell 返回 Promise
  */
-
 async function execShell(scriptPath) {
   const execFile = require('util').promisify(require('child_process').execFile);
   return await execFile('sh', [scriptPath]);
@@ -32,8 +34,12 @@ const findAgentName = userAgent => {
   return name;
 };
 
-const config = require('../env');
-const hosts = config.hosts;
+const nowDate = function(timestamp = '') {
+  if (timestamp) {
+    return moment(timestamp).format('YYYY-MM-DD HH:mm:ss');
+  }
+  return moment().format('YYYY-MM-DD HH:mm:ss');
+};
 
 const findAgentByName = hostName => {
   return hosts.find(host => {
@@ -45,4 +51,5 @@ module.exports = {
   execShell,
   findAgentName,
   findAgentByName,
+  nowDate,
 };
