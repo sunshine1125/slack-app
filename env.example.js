@@ -15,5 +15,27 @@ module.exports = {
       secret: '',
       logo: 'xxx',
     },
+    {
+      name: 'bitbucket-server',
+      secret: 'xxx',
+      bucket_url: 'xxx',
+      repo_url: 'xxx',
+      logo: 'xxx',
+    },
+    {
+      name: 'bitbucket-cloud',
+      secret: '',
+      logo: 'xxx',
+    },
+    {
+      name: 'gitlab',
+      secret: 'xxx',
+      logo: 'xxx',
+    },
+    {
+      name: 'gitee',
+      secret: 'xxx',
+      logo: 'xxx',
+    },
   ],
 };

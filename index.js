@@ -71,7 +71,6 @@ app.post('/', middlewares, (req, res) => {
     reqConfig(req, res, messageBucketCloud.getMessage());
   } else if (req.sourceName === 'gitlab') {
     let messageGitlab = new messageGitLab(req);
-    console.log(messageGitlab.getMessage());
     reqConfig(req, res, messageGitlab.getMessage());
   } else {
     let messageGithubAndCoding = new messageGithubAndCodingNet(req);
