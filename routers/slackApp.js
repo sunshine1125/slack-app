@@ -60,12 +60,4 @@ router.post('/fan-list', (req, res) => {
   res.send(allDinner.join(','));
 });
 
-router.post('/hexo', (req, res) => {
-  const { stdout, stderr } = helpers.execShell('scripts/hexo.sh');
-  if (stderr) {
-    res.send('error');
-  }
-  res.send(`[${helpers.nowDate()}] success`);
-});
-
 module.exports = router;
