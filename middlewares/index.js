@@ -3,7 +3,6 @@ const helpers = require('../common/helpers');
 
 // get secret middleware
 const getAgentSecret = (req, res, next) => {
-  console.log(req.headers);
   if (req.headers.hasOwnProperty('user-agent')) {
     req.sourceName = helpers.findAgentName(req.headers['user-agent']);
   } else if (req.headers.hasOwnProperty('x-gitlab-event')) {
@@ -18,14 +17,15 @@ const verifyHubSignature = (req, res, next) => {
   const signature =
     req.headers['x-hub-signature'] ||
     req.headers['x-coding-signature'] ||
-    req.headers['x-gitlab-token'];
-  if (signature !== undefined) {
+    req.headers['x-gitlab-token'] ||
+    req.headers['x-gitee-token'];
+  if (signature !== undefined && signature !== '') {
     let expectedSignature = '';
     if (req.sourceName === 'bitbucket-server') {
       const hmac = crypto.createHmac('sha256', req.secret);
       hmac.update(JSON.stringify(req.body));
       expectedSignature = 'sha256=' + hmac.digest('hex');
-    } else if (req.sourceName === 'gitlab') {
+    } else if (req.sourceName === 'gitlab' || req.sourceName === 'gitee') {
       expectedSignature = req.secret;
     } else {
       const hmac = crypto.createHmac('sha1', req.secret);

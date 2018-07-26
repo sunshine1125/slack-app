@@ -17,6 +17,10 @@ const findAgentName = userAgent => {
   let name = '';
   if (userAgent.split('-')[0]) {
     name = userAgent.split('-')[0];
+    if (name === 'git') {
+      name = 'gitee';
+      return name;
+    }
     if (name === 'Bitbucket') {
       name = 'bitbucket-cloud';
       return name;
