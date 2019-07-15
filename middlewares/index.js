@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const helpers = require('../common/helpers');
-
+const appDebug = require('debug')('app');
 // get secret middleware
 const getAgentSecret = (req, res, next) => {
   if (req.headers.hasOwnProperty('user-agent')) {
@@ -34,6 +34,8 @@ const verifyHubSignature = (req, res, next) => {
     }
     if (expectedSignature !== signature) {
       res.status(400).send('Invalid signature');
+      appDebug('reqSignature:', req.secret);
+      appDebug('expectedSignature:', expectedSignature);
     } else {
       next();
     }
@@ -42,4 +44,7 @@ const verifyHubSignature = (req, res, next) => {
   }
 };
 
-module.exports = [getAgentSecret, verifyHubSignature];
+module.exports = [
+  getAgentSecret,
+  verifyHubSignature
+];
