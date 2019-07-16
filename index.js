@@ -13,10 +13,11 @@ const slackAppRouter = require('./routers/slackApp');
 const debug = require('debug');
 const appDebug = debug('app');
 
-const messageGithubAndCodingNet = require('./SlackMessage/messageGithubAndCoding');
+const messageGithub = require('./SlackMessage/messageGithub');
 const messageBitbucketServer = require('./SlackMessage/messageBitbucketServer');
 const messageBitbucketCloud = require('./SlackMessage/messageBitbucketCloud');
 const messageGitLab = require('./SlackMessage/messageGitLab');
+const messageCoding = require('./SlackMessage/messageCoding');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -72,8 +73,11 @@ app.post('/', middlewares, (req, res) => {
   } else if (req.sourceName === 'gitlab') {
     let messageGitlab = new messageGitLab(req);
     reqConfig(req, res, messageGitlab.getMessage());
+  } else if (req.sourceName === 'Coding.net') {
+    let messageCodingNet = new messageCoding(req);
+    reqConfig(req, res, messageCodingNet.getMessage());
   } else {
-    let messageGithubAndCoding = new messageGithubAndCodingNet(req);
-    reqConfig(req, res, messageGithubAndCoding.getMessage());
+    let messageGitHub = new messageGithub(req);
+    reqConfig(req, res, messageGitHub.getMessage());
   }
 });

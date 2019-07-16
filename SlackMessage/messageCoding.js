@@ -1,5 +1,5 @@
 const slackParentMessage = require('./parentMessageClass');
-class messageGithubAndCoding extends slackParentMessage {
+class messageCoding extends slackParentMessage {
   constructor(fields) {
     super(fields);
     this.data = fields.body;
@@ -53,4 +53,4 @@ class messageGithubAndCoding extends slackParentMessage {
   }
 }
 
-module.exports = messageGithubAndCoding;
+module.exports = messageCoding;
