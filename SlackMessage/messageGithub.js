@@ -14,25 +14,25 @@ class messageGithub extends slackParentMessage {
     return this.data.repository.html_url;
   }
   getMessage() {
-    let output = [];
+    const output = [];
     if (this.data.commits) {
       this.data.commits.forEach(commit => {
-        let commit_date = super.nowDate(commit.timestamp);
-        let commit_url = commit.url;
-        let actor_name = commit.author.name;
-        let commit_message = commit.message || '';
-        this.build(output, commit_date, commit_url, actor_name, commit_message);
+        this.processData(output, commit);
       });
     } else {
-      let commit = this.data.head_commit;
-      let commit_date = super.nowDate(commit.timestamp);
-      let commit_url = commit.url;
-      let actor_name = commit.author.name;
-      let commit_message = commit.message || '';
-      this.build(output, commit_date, commit_url, actor_name, commit_message);
+      this.processData(output, this.data.head_commit);
     }
     return output;
   }
+
+  processData(output, commit) {
+    const commit_date = super.nowDate(commit.timestamp);
+    const commit_url = commit.url;
+    const actor_name = commit.author.name;
+    const commit_message = commit.message || '';
+    this.build(output, commit_date, commit_url, actor_name, commit_message);
+  }
+
   build(output, commit_date, commit_url, actor_name, commit_message) {
     output.push({
       color: '#36a64f',

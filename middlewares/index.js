@@ -29,7 +29,7 @@ const verifyHubSignature = (req, res, next) => {
       expectedSignature = req.secret;
     } else {
       const hmac = crypto.createHmac('sha1', req.secret);
-      hmac.update(JSON.stringify(req.body));
+      hmac.update(new Buffer(JSON.stringify(req.body)));
       expectedSignature = 'sha1=' + hmac.digest('hex');
     }
     if (expectedSignature !== signature) {
