@@ -13,10 +13,11 @@ const slackAppRouter = require('./routers/slackApp');
 const debug = require('debug');
 const appDebug = debug('app');
 
-const messageGithubAndCodingNet = require('./SlackMessage/messageGithubAndCoding');
+const messageGithub = require('./SlackMessage/messageGithub');
 const messageBitbucketServer = require('./SlackMessage/messageBitbucketServer');
 const messageBitbucketCloud = require('./SlackMessage/messageBitbucketCloud');
 const messageGitLab = require('./SlackMessage/messageGitLab');
+const messageCoding = require('./SlackMessage/messageCoding');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -61,19 +62,28 @@ app.post('/', middlewares, (req, res) => {
     return res.send('success');
   }
   req.logo = helpers.findAgentByName(req.sourceName).logo;
-  if (req.sourceName === 'bitbucket-server') {
-    req.bitbucket_url = helpers.findAgentByName(req.sourceName).bitbucket_url;
-    req.repo_url = helpers.findAgentByName(req.sourceName).repo_url;
-    let messageBucketServer = new messageBitbucketServer(req);
-    reqConfig(req, res, messageBucketServer.getMessage());
-  } else if (req.sourceName === 'bitbucket-cloud') {
-    let messageBucketCloud = new messageBitbucketCloud(req);
-    reqConfig(req, res, messageBucketCloud.getMessage());
-  } else if (req.sourceName === 'gitlab') {
-    let messageGitlab = new messageGitLab(req);
-    reqConfig(req, res, messageGitlab.getMessage());
-  } else {
-    let messageGithubAndCoding = new messageGithubAndCodingNet(req);
-    reqConfig(req, res, messageGithubAndCoding.getMessage());
+  switch (req.sourceName) {
+    case 'bitbucket-server':
+      req.bitbucket_url = helpers.findAgentByName(req.sourceName).bitbucket_url;
+      req.repo_url = helpers.findAgentByName(req.sourceName).repo_url;
+      let messageBucketServer = new messageBitbucketServer(req);
+      reqConfig(req, res, messageBucketServer.getMessage());
+      break;
+    case 'bitbucket-cloud':
+      let messageBucketCloud = new messageBitbucketCloud(req);
+      reqConfig(req, res, messageBucketCloud.getMessage());
+      break;
+    case 'gitlab':
+      let messageGitlab = new messageGitLab(req);
+      reqConfig(req, res, messageGitlab.getMessage());
+      break;
+    case 'Coding.net':
+      let messageCodingNet = new messageCoding(req);
+      reqConfig(req, res, messageCodingNet.getMessage());
+      break;
+    default:
+      let messageGitHub = new messageGithub(req);
+      reqConfig(req, res, messageGitHub.getMessage());
+      break;
   }
 });

@@ -1,5 +1,5 @@
 const slackParentMessage = require('./parentMessageClass');
-class messageGithubAndCoding extends slackParentMessage {
+class messageCoding extends slackParentMessage {
   constructor(fields) {
     super(fields);
     this.data = fields.body;
@@ -11,28 +11,29 @@ class messageGithubAndCoding extends slackParentMessage {
     return this.data.repository.name;
   }
   getRepoUrl() {
-    return this.data.repository.html_url;
+    return `${this.data.repository.owner.html_url}/p/${this.getRepoName()}`;
   }
   getMessage() {
-    let output = [];
+    const output = [];
     if (this.data.commits) {
       this.data.commits.forEach(commit => {
-        let commit_date = super.nowDate(commit.timestamp);
-        let commit_url = commit.url;
-        let actor_name = commit.author.name;
-        let commit_message = commit.message || '';
-        this.build(output, commit_date, commit_url, actor_name, commit_message);
+        this.processData(output, commit);
       });
     } else {
       let commit = this.data.head_commit;
-      let commit_date = super.nowDate(commit.timestamp);
-      let commit_url = commit.url;
-      let actor_name = commit.author.name;
-      let commit_message = commit.message || '';
-      this.build(output, commit_date, commit_url, actor_name, commit_message);
+      this.processData(output, commit);
     }
     return output;
   }
+
+  processData(output, commit) {
+    const commit_date = super.nowDate(commit.timestamp);
+    const commit_url = `${this.getRepoUrl()}/git/commit/${commit.id}`;
+    const actor_name = commit.author.name;
+    const commit_message = commit.message || '';
+    this.build(output, commit_date, commit_url, actor_name, commit_message);
+  }
+
   build(output, commit_date, commit_url, actor_name, commit_message) {
     output.push({
       color: '#36a64f',
@@ -53,4 +54,4 @@ class messageGithubAndCoding extends slackParentMessage {
   }
 }
 
-module.exports = messageGithubAndCoding;
+module.exports = messageCoding;
