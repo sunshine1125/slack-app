@@ -25,11 +25,11 @@ module.exports = {
    * http://pm2.keymetrics.io/docs/usage/deployment/
    */
   deploy: {
-    master: {
+    development: {
       host: ['cloud'],
       user: 'ubuntu',
-      ref: 'origin/master',
-      repo: 'git@github.com:liangtongzhuo/slack-app.git',
+      ref: 'origin/develop',
+      repo: 'https://github.com/sunshine1125/slack-app.git',
       path: '/var/www/slack-app',
       // "ssh_options": ["StrictHostKeyChecking=no", "PasswordAuthentication=no"],
       'post-setup': 'chmod u+x scripts/*.sh',
