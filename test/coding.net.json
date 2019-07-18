@@ -1,0 +1,110 @@
+{
+  "ref": "refs/heads/develop",
+  "before": "d3d96ce2971008560563eee010df00fab24da1ee",
+  "after": "e7a70e5c91267bfaac8796146d641473e3d5e6c1",
+  "created": false,
+  "deleted": false,
+  "compare": "<a href='https://coding.net/u/finley/p/sinuoxiaofang_backend' target='_blank'>sinuoxiaofang_admin</a>/git/compare/d3d96ce297100...e7a70e5c91267",
+  "commits": [
+    {
+      "id": "e7a70e5c91267bfaac8796146d641473e3d5e6c1",
+      "distinct": false,
+      "message": "Merge remote-tracking branch 'origin/develop' into develop\n\n# Conflicts:\n#\tcomposer.json\n",
+      "timestamp": 1563358190000,
+      "url": "<a href='https://coding.net/u/finley/p/sinuoxiaofang_backend' target='_blank'>sinuoxiaofang_admin</a>/git/commit/e7a70e5c91267bfaac8796146d641473e3d5e6c1",
+      "author": {
+        "name": "finleyma",
+        "email": "maf@shinetechchina.com",
+        "username": "finleyma"
+      },
+      "committer": {
+        "name": "finleyma",
+        "email": "maf@shinetechchina.com",
+        "username": "finleyma"
+      },
+      "added": [],
+      "removed": [],
+      "modified": []
+    },
+    {
+      "id": "9102c5c2e630b7cee6d538dfbbfe1b395705d6dc",
+      "distinct": false,
+      "message": "composer.json\n",
+      "timestamp": 1563358181000,
+      "url": "<a href='https://coding.net/u/finley/p/sinuoxiaofang_backend' target='_blank'>sinuoxiaofang_admin</a>/git/commit/9102c5c2e630b7cee6d538dfbbfe1b395705d6dc",
+      "author": {
+        "name": "finleyma",
+        "email": "maf@shinetechchina.com",
+        "username": "finleyma"
+      },
+      "committer": {
+        "name": "finleyma",
+        "email": "maf@shinetechchina.com",
+        "username": "finleyma"
+      },
+      "added": [],
+      "removed": [],
+      "modified": [
+        "composer.json"
+      ]
+    }
+  ],
+  "head_commit": {
+    "id": "e7a70e5c91267bfaac8796146d641473e3d5e6c1",
+    "distinct": false,
+    "message": "Merge remote-tracking branch 'origin/develop' into develop\n\n# Conflicts:\n#\tcomposer.json\n",
+    "timestamp": 1563358190000,
+    "url": "<a href='https://coding.net/u/finley/p/sinuoxiaofang_backend' target='_blank'>sinuoxiaofang_admin</a>/git/commit/e7a70e5c91267bfaac8796146d641473e3d5e6c1",
+    "author": {
+      "name": "finleyma",
+      "email": "maf@shinetechchina.com",
+      "username": "finleyma"
+    },
+    "committer": {
+      "name": "finleyma",
+      "email": "maf@shinetechchina.com",
+      "username": "finleyma"
+    },
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "pusher": {
+    "name": "finleyMa",
+    "email": "mafeifan@qq.com",
+    "username": "finley"
+  },
+  "sender": {
+    "id": 5203,
+    "login": "finley",
+    "avatar_url": "https://dn-coding-net-production-static.qbox.me/f9591d222b851e75504db35cbb825471.jpg",
+    "url": "https://dev.tencent.com/api/user/key/finley",
+    "html_url": "https://dev.tencent.com/u/finley",
+    "name": "finleyMa",
+    "name_pinyin": "|finleyMa|finleyMa"
+  },
+  "repository": {
+    "id": 4603974,
+    "name": "sinuoxiaofang_backend",
+    "full_name": "finley/sinuoxiaofang_backend",
+    "owner": {
+      "id": 5203,
+      "login": "finley",
+      "avatar_url": "https://dn-coding-net-production-static.qbox.me/f9591d222b851e75504db35cbb825471.jpg",
+      "url": "https://dev.tencent.com/api/user/key/finley",
+      "html_url": "https://dev.tencent.com/u/finley",
+      "name": "finleyMa",
+      "name_pinyin": "|finleyMa|finleyMa"
+    },
+    "private": true,
+    "html_url": "<a href='https://dev.tencent.com/u/finley/p/sinuoxiaofang_backend' target='_blank'>sinuoxiaofang_admin</a>",
+    "description": "",
+    "fork": false,
+    "url": "https://dev.tencent.com/api/user/finley/project/sinuoxiaofang_backend",
+    "created_at": 1562901140219,
+    "updated_at": 1562901140219,
+    "clone_url": "https://git.dev.tencent.com/finley/sinuoxiaofang_backend.git",
+    "ssh_url": "git@git.dev.tencent.com:finley/sinuoxiaofang_backend.git",
+    "default_branch": "master"
+  }
+}

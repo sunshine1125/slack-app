@@ -59,7 +59,7 @@ const reqConfig = (req, res, attachments) => {
 app.post('/', middlewares, (req, res) => {
   // 平台测试请求，直接返回成功
   if (req.body.zen) {
-    return res.send('success');
+    return res.send('this is a ping event, return success immediately');
   }
   req.logo = helpers.findAgentByName(req.sourceName).logo;
   switch (req.sourceName) {
