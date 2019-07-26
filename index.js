@@ -35,11 +35,17 @@ app.get('/', (req, res) => {
 });
 
 const reqConfig = (req, res, attachments) => {
+  const channelIndex = config.channels.findIndex(channel => {
+    return channel.id === parseInt(req.params.id);
+  });
+  const channelUrl = config.channels[channelIndex]
+    ? config.channels[channelIndex].url
+    : config.channelUrl;
   const headers = {
     'Content-type': 'application/json',
   };
   const options = {
-    url: config.channelUrl,
+    url: channelUrl,
     method: 'POST',
     headers: headers,
     body: {
@@ -56,7 +62,7 @@ const reqConfig = (req, res, attachments) => {
   });
 };
 
-app.post('/', middlewares, (req, res) => {
+app.post('/:id?', middlewares, (req, res) => {
   // 平台测试请求，直接返回成功
   if (req.body.zen) {
     return res.send('this is a ping event, return success immediately');

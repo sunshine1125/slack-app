@@ -3,6 +3,18 @@ module.exports = {
   clientId: '1',
   clientSecret: '1',
   bitbucketUrl: '',
+  channels: [
+    {
+      id: 1,
+      name: 'xxx',
+      url: 'https://hooks.slack.com/services/xxxx',
+    },
+    {
+      id: 2,
+      name: 'xxx',
+      url: 'https://hooks.slack.com/services/xxxx',
+    },
+  ],
   channelUrl: 'https://hooks.slack.com/services/XXX',
   hosts: [
     {
