@@ -40,7 +40,7 @@ const reqConfig = (req, res, attachments) => {
   });
   const channelUrl = config.channels[channelIndex]
     ? config.channels[channelIndex].url
-    : config.channelUrl;
+    : config.defaultChannelUrl;
   const headers = {
     'Content-type': 'application/json',
   };

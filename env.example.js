@@ -15,7 +15,7 @@ module.exports = {
       url: 'https://hooks.slack.com/services/xxxx',
     },
   ],
-  channelUrl: 'https://hooks.slack.com/services/XXX',
+  defaultChannelUrl: 'https://hooks.slack.com/services/XXX',
   hosts: [
     {
       name: 'github',
