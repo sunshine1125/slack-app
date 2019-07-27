@@ -1,4 +1,5 @@
 const moment = require('moment');
+
 class slackParentMessage {
   constructor(fields) {
     this.fields = fields;

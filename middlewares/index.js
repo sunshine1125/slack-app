@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const helpers = require('../common/helpers');
 const appDebug = require('debug')('app');
+
 // get secret middleware
 const getAgentSecret = (req, res, next) => {
   if (req.headers.hasOwnProperty('user-agent')) {

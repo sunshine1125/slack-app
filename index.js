@@ -34,7 +34,38 @@ app.get('/', (req, res) => {
   res.send('it is working! Path Hit: ' + req.url);
 });
 
-const reqConfig = (req, res, attachments) => {
+
+
+function slackRequestBody(attachments) {
+  return {
+    attachments: attachments,
+  }
+}
+
+/**
+ * 给钉钉机器人发的请求体
+ * https://open-doc.dingtalk.com/microapp/serverapi2/qf2nxq
+ * @returns {{}}
+ */
+function dingRequestBody(text) {
+  // console.log(JSON.stringify(text));
+  // return;
+  return {
+    msgtype: "markdown",
+    markdown: {
+      title: "仓库有新的代码更新咯!",
+      text: text
+    }
+  }
+}
+
+/**
+ * Build Post Body
+ * @param req
+ * @param res
+ * @param attachments
+ */
+const reqConfig = (req, res, body) => {
   const channelIndex = config.channels.findIndex(channel => {
     return channel.id === parseInt(req.params.id);
   });
@@ -45,18 +76,16 @@ const reqConfig = (req, res, attachments) => {
     'Content-type': 'application/json',
   };
   const options = {
-    url: channelUrl,
+    url: 'https://oapi.dingtalk.com/robot/send?access_token=6d3f264ba6d6de598fa4915204db3f93822453e0cb0952ca57cf3ddacc7b9fb6',
     method: 'POST',
     headers: headers,
-    body: {
-      attachments: attachments,
-    },
+    body: dingRequestBody(body),
     json: true,
   };
 
-  request(options, (error, response, body) => {
-    if (!error && response.statusCode == 200) {
-      appDebug('push message to slack success');
+  request(options, (error, response) => {
+    if (!error && response.statusCode === 200) {
+      appDebug('push message to success');
     }
     res.send('');
   });
@@ -64,10 +93,11 @@ const reqConfig = (req, res, attachments) => {
 
 app.post('/:id?', middlewares, (req, res) => {
   // 平台测试请求，直接返回成功
-  if (req.body.zen) {
+  if (req.body && req.body.zen) {
     return res.send('this is a ping event, return success immediately');
   }
   req.logo = helpers.findAgentByName(req.sourceName).logo;
+  // 仓库提供商
   switch (req.sourceName) {
     case 'bitbucket-server':
       req.bitbucket_url = helpers.findAgentByName(req.sourceName).bitbucket_url;
@@ -85,7 +115,8 @@ app.post('/:id?', middlewares, (req, res) => {
       break;
     case 'Coding.net':
       let messageCodingNet = new messageCoding(req);
-      reqConfig(req, res, messageCodingNet.getMessage());
+      // return;
+      reqConfig(req, res, messageCodingNet.getDingTalkPayload());
       break;
     default:
       let messageGitHub = new messageGithub(req);
