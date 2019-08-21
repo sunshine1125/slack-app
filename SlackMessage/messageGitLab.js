@@ -33,7 +33,7 @@ class messageGitLab extends slackParentMessage {
       author_link: `${this.getRepoUrl()}`,
       author_icon: `${super.getRepoLogo()}`,
       title: `${actor_name} committed to [${this.getBranchName()} - ${this.getRepoName()}]`,
-      text: `commit message ${commit_message}`,
+      text: `[commit message] ${commit_message}`,
       actions: [
         {
           type: 'button',
