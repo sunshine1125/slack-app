@@ -3,7 +3,6 @@ const express = require('express');
 const app = express();
 const request = require('request');
 const bodyParser = require('body-parser');
-const moment = require('moment');
 
 const helpers = require('./common/helpers');
 const middlewares = require('./middlewares/index');
@@ -34,12 +33,14 @@ app.get('/', (req, res) => {
   res.send('it is working! Path Hit: ' + req.url);
 });
 
-
-
+/**
+ * 给Slack发送的请求体
+ * @returns {{}}
+ */
 function slackRequestBody(attachments) {
   return {
     attachments: attachments,
-  }
+  };
 }
 
 /**
@@ -51,35 +52,44 @@ function dingRequestBody(text) {
   // console.log(JSON.stringify(text));
   // return;
   return {
-    msgtype: "markdown",
+    msgtype: 'markdown',
     markdown: {
-      title: "仓库有新的代码更新咯!",
-      text: text
-    }
-  }
+      title: '仓库有新的代码更新咯!',
+      text: text,
+    },
+  };
 }
 
 /**
  * Build Post Body
  * @param req
  * @param res
- * @param attachments
+ * @param body
  */
 const reqConfig = (req, res, body) => {
-  const channelIndex = config.channels.findIndex(channel => {
-    return channel.id === parseInt(req.params.id);
-  });
-  const channelUrl = config.channels[channelIndex]
-    ? config.channels[channelIndex].url
-    : config.defaultChannelUrl;
-  const headers = {
-    'Content-type': 'application/json',
-  };
+  const type = req.params.type;
+  const project_name = req.params.project_name || 'ref-app';
+  let requestBody, requestUrl;
+  if (type) {
+    if (parseInt(type) === 1 || type.toLowerCase() === 'slack') {
+      requestUrl = config.projects[project_name].slackChannelUrl;
+      requestBody = slackRequestBody(body);
+    } else {
+      requestUrl = config.projects[project_name].dingRobotUrl;
+      requestBody = dingRequestBody(body);
+    }
+  } else {
+    requestUrl = config.projects.defaultSlackChannelUrl;
+    requestBody = slackRequestBody(body);
+  }
+
   const options = {
-    url: 'https://oapi.dingtalk.com/robot/send?access_token=6d3f264ba6d6de598fa4915204db3f93822453e0cb0952ca57cf3ddacc7b9fb6',
+    url: requestUrl,
     method: 'POST',
-    headers: headers,
-    body: dingRequestBody(body),
+    headers: {
+      'Content-type': 'application/json',
+    },
+    body: requestBody,
     json: true,
   };
 
@@ -87,11 +97,13 @@ const reqConfig = (req, res, body) => {
     if (!error && response.statusCode === 200) {
       appDebug('push message to success');
     }
-    res.send('');
+    res.end('');
   });
 };
 
-app.post('/:id?', middlewares, (req, res) => {
+app.post('/:type?/:project_name?', middlewares, (req, res) => {
+  const type = req.params.type;
+
   // 平台测试请求，直接返回成功
   if (req.body && req.body.zen) {
     return res.send('this is a ping event, return success immediately');
@@ -115,12 +127,11 @@ app.post('/:id?', middlewares, (req, res) => {
       break;
     case 'Coding.net':
       let messageCodingNet = new messageCoding(req);
-      // return;
-      reqConfig(req, res, messageCodingNet.getDingTalkPayload());
+      reqConfig(req, res, messageCodingNet.getPayload(type));
       break;
     default:
       let messageGitHub = new messageGithub(req);
-      reqConfig(req, res, messageGitHub.getMessage());
+      reqConfig(req, res, messageGitHub.getPayload(type));
       break;
   }
 });

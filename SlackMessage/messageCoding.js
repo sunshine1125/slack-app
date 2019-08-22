@@ -19,14 +19,26 @@ class messageCoding extends slackParentMessage {
     this.committer_name = fields.body.pusher.username || fields.body.pusher.email;
 
     this.buildDingTalkPayload();
+
+    this.buildSlackPayload();
   }
 
-  getDingTalkPayload() {
-    return this.dingTalkPayload;
+  getPayload(type) {
+    if (type) {
+      if (parseInt(type) === 1 || type.toLowerCase() === 'slack') {
+        return this.slackPayload;
+      } else {
+        return this.dingTalkPayload;
+      }
+    } else {
+      return this.slackPayload;
+    }
   }
 
   buildDingTalkPayload() {
-    this.dingTalkPayload = `#### [${this.repository_name} - ${this.branch_name}] ${this.commits.length} commit, push by ${this.committer_name} \n`;
+    this.dingTalkPayload = `#### [${this.repository_name} - ${this.branch_name}] ${
+      this.commits.length
+    } commit, push by ${this.committer_name} \n`;
     this.commits.forEach(commit => {
       let committer_name = commit.committer.name;
       let commit_url = `${this.repository_url}/git/commit/${commit.id}`;
@@ -50,8 +62,9 @@ class messageCoding extends slackParentMessage {
         author_link: `${this.repository_url}`,
         author_icon: `${super.getRepoLogo()}`,
         title: `${committer_name} committed to [${this.branch_name} - ${this.repository_name}]`,
-        text: `commit message ${commit_message}`,
-        actions: [{
+        text: `[commit message] ${commit_message}`,
+        actions: [
+          {
             type: 'button',
             text: 'view detail',
             url: `${commit_url}`,

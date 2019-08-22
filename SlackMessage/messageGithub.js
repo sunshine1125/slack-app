@@ -3,53 +3,75 @@ const slackParentMessage = require('./parentMessageClass');
 class messageGithub extends slackParentMessage {
   constructor(fields) {
     super(fields);
-    this.data = fields.body;
+
+    this.slackPayload = [];
+
+    this.dingTalkPayload = '';
+
+    this.branch_name = fields.body.ref;
+
+    this.repository_name = fields.body.repository.name;
+
+    this.repository_url = fields.body.repository.html_url;
+
+    this.commits = fields.body.commits ? fields.body.commits : [fields.body.head_commit];
+
+    this.committer_name = fields.body.pusher.name || fields.body.pusher.email;
+
+    this.buildDingTalkPayload();
+
+    this.buildSlackPayload();
   }
-  getBranchName() {
-    return this.data.ref;
-  }
-  getRepoName() {
-    return this.data.repository.name;
-  }
-  getRepoUrl() {
-    return this.data.repository.html_url;
-  }
-  getMessage() {
-    const output = [];
-    if (this.data.commits) {
-      this.data.commits.forEach(commit => {
-        this.processData(output, commit);
-      });
+
+  getPayload(type) {
+    if (type) {
+      if (parseInt(type) === 1 || type.toLowerCase() === 'slack') {
+        return this.slackPayload;
+      } else {
+        return this.dingTalkPayload;
+      }
     } else {
-      this.processData(output, this.data.head_commit);
+      return this.slackPayload;
     }
-    return output;
   }
 
-  processData(output, commit) {
-    const commit_date = super.nowDate(commit.timestamp);
-    const commit_url = commit.url;
-    const actor_name = commit.author.name;
-    const commit_message = commit.message || '';
-    this.build(output, commit_date, commit_url, actor_name, commit_message);
+  buildDingTalkPayload() {
+    this.dingTalkPayload = `#### [${this.repository_name} - ${this.branch_name}] ${
+      this.commits.length
+    } commit, push by ${this.committer_name} \n`;
+    this.commits.forEach(commit => {
+      let committer_name = commit.committer.name;
+      let commit_url = `${this.repository_url}/git/commit/${commit.id}`;
+      let commit_message = commit.message || '';
+      let commit_hash6 = commit.id.substring(0, 6);
+      let item = `- ${committer_name}: [${commit_hash6}](${commit_url}) - ${commit_message}`;
+      this.dingTalkPayload = this.dingTalkPayload + item;
+    });
   }
 
-  build(output, commit_date, commit_url, actor_name, commit_message) {
-    output.push({
-      color: '#36a64f',
-      author_name: `${this.getRepoName()}`,
-      author_link: `${this.getRepoUrl()}`,
-      author_icon: `${super.getRepoLogo()}`,
-      title: `${actor_name} committed to [${this.getBranchName()} - ${this.getRepoName()}]`,
-      text: `[commit message] ${commit_message}`,
-      actions: [
-        {
-          type: 'button',
-          text: 'view detail',
-          url: `${commit_url}`,
-        },
-      ],
-      footer: `${super.getSourceName()} | ${commit_date}`,
+  buildSlackPayload() {
+    this.commits.forEach(commit => {
+      const commit_date = super.nowDate(commit.timestamp);
+      const commit_url = `${this.repository_url}/git/commit/${commit.id}`;
+      const committer_name = commit.author.name;
+      const commit_message = commit.message || '';
+
+      this.slackPayload.push({
+        color: '#36a64f',
+        author_name: `${this.repository_name}`,
+        author_link: `${this.repository_url}`,
+        author_icon: `${super.getRepoLogo()}`,
+        title: `${committer_name} committed to [${this.branch_name} - ${this.repository_name}]`,
+        text: `[commit message] ${commit_message}`,
+        actions: [
+          {
+            type: 'button',
+            text: 'view detail',
+            url: `${commit_url}`,
+          },
+        ],
+        footer: `${super.getSourceName()} | ${commit_date}`,
+      });
     });
   }
 }
