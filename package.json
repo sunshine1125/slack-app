@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run dev",
     "dev": "DEBUG=app nodemon",
     "deploy": "pm2 deploy ecosystem.config.js development",
     "format": "prettier --write '**/*.js' ",

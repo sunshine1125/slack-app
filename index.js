@@ -53,7 +53,7 @@ function dingRequestBody(text) {
   return {
     msgtype: "markdown",
     markdown: {
-      title: "仓库有新的代码更新咯!",
+      title: "仓库有新的代码更新",
       text: text
     }
   }
@@ -76,7 +76,7 @@ const reqConfig = (req, res, body) => {
     'Content-type': 'application/json',
   };
   const options = {
-    url: 'https://oapi.dingtalk.com/robot/send?access_token=6d3f264ba6d6de598fa4915204db3f93822453e0cb0952ca57cf3ddacc7b9fb6',
+    url: 'https://oapi.dingtalk.com/robot/send?access_token=451219ba330d5195418eb216e0be2d84c3abb23e255d7fe652b40b10081085fc',
     method: 'POST',
     headers: headers,
     body: dingRequestBody(body),
