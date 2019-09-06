@@ -9,6 +9,7 @@ const express = require('express');
 const router = express.Router();
 const config = require('../env');
 const helpers = require('../common/helpers');
+const appDebug = require('debug')('app');
 
 // Store our app's ID and Secret. These we got from Step 1.
 // For this tutorial, we'll keep your API credentials right here. But for an actual app, you'll want to store them securely in environment variables.
