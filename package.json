@@ -8,11 +8,7 @@
     "start": "npm run dev",
     "dev": "DEBUG=app nodemon",
     "deploy": "pm2 deploy ecosystem.config.js development",
-    "format": "prettier --write '**/*.js' ",
-    "precommit": "lint-staged"
-  },
-  "lint-staged": {
-    "*.{js,json,css,md}": ["prettier --write", "git add"]
+    "format": "prettier --write '**/*.js' "
   },
   "author": "",
   "license": "ISC",
