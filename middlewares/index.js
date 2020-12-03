@@ -5,12 +5,15 @@ const config = require('../env');
 
 // get secret middleware
 const getAgentSecret = (req, res, next) => {
+  appDebug('req:', req.params);
   const project_name = req.params.project_name;
   if (req.headers.hasOwnProperty('user-agent')) {
     req.sourceName = helpers.findAgentName(req.headers['user-agent']);
   } else if (req.headers.hasOwnProperty('x-gitlab-event')) {
     req.sourceName = 'gitlab';
   }
+
+  appDebug('sourceName:', req.sourceName);
   if (project_name && config.projects[project_name] && config.projects[project_name]['secret']) {
     req.secret = config.projects[project_name].secret;
   } else if (req.params.id) {
